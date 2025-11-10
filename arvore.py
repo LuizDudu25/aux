@@ -76,8 +76,6 @@ def extrair_vertices_arvore(arvore):
         vertices.add(v)
     return vertices
 
-import math
-
 def verticeMaisProximo(ponto, arvore):
     # validar ponto
     if not (isinstance(ponto, (tuple, list)) and len(ponto) == 2):
