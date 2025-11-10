@@ -1,7 +1,7 @@
 from mapa import ler_mapa
 from grafo import grafo_visibilidade, plotar_grafo
 from arvore import (prim, validar_mst, estatisticas_mst, plotar_mst, verticeMaisProximo)
-from caminho import (buscarCaminho, estatisticas_caminho, plotarCaminho)
+from caminho import (buscarCaminho, estatisticas_caminho, plotar_caminho)
 
 if __name__ == "__main__":
     arquivo_mapa = "mapa.txt"
@@ -161,10 +161,9 @@ if __name__ == "__main__":
             print(f"\nGerando visualização do caminho encontrado...")
             print(f"Caminho: {len(caminho)} vértices, distância {distancia_caminho:.2f}")
             
-            # Plotar com árvore completa
-            print(f"\nCaminho destacado sobre a árvore completa")
-            plotarCaminho(q_start, q_goal, obstaculos, mst, caminho, 
-                         mostrar_arvore=True, destacar_vertices=True)
+            # Plotar com grafo completo
+            print(f"\nCaminho destacado sobre o grafo completo")
+            plotar_caminho(caminho, obstaculos, q_start, q_goal, grafo)
         else:
             print(f"\nVisualização não realizada, nenhum caminho disponível")
 
