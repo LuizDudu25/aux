@@ -4,6 +4,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from shapely.geometry import Polygon
 
 def prim(grafo, inicio):
     visitado = set()
@@ -107,51 +108,71 @@ def verticeMaisProximo(ponto, arvore, retornar_distancia=False):
         return mais_proximo, menor_distancia
     return mais_proximo
 
-def plotar_mst(q_start, q_goal, obstaculos, mst, mostrar_pesos=False):
-    fig, ax = plt.subplots(figsize=(12, 10))
-    ax.set_aspect('equal')
+def plotar_mst(arvore, obstaculos, q_start=None, q_goal=None):
+    fig, ax = plt.subplots(figsize=(8, 8))
 
-    # Plotar obstáculos
+    # Obstáculos
     for obst in obstaculos:
-        ax.add_patch(patches.Polygon(obst, closed=True, 
-                                    facecolor='gray', 
-                                    edgecolor='black',
-                                    alpha=0.7,
-                                    linewidth=2))
+        pol = Polygon(obst)
+        x, y = pol.exterior.xy
 
-    # Plotar arestas da MST com gradiente de cores
-    if mst:
-        pesos = [peso for (_, _, peso) in mst]
-        peso_min, peso_max = min(pesos), max(pesos)
-        
-        for (u, v, peso) in mst:
-            # Gradiente: azul (leve) -> vermelho (pesado)
-            if peso_max > peso_min:
-                intensidade = (peso - peso_min) / (peso_max - peso_min)
-            else:
-                intensidade = 0.5
-            
-            # RGB: azul escuro -> roxo -> vermelho
-            cor = (0.8 * intensidade, 0.2, 1 - 0.8 * intensidade)
-            
-            plt.plot([u[0], v[0]], [u[1], v[1]], 
-                    color=cor, linewidth=2.5, alpha=0.9, zorder=2)
-            
-            # Opcional: mostrar peso da aresta
-            if mostrar_pesos:
-                meio_x = (u[0] + v[0]) / 2
-                meio_y = (u[1] + v[1]) / 2
-                ax.text(meio_x, meio_y, f'{peso:.1f}', 
-                       fontsize=7, ha='center', 
-                       bbox=dict(boxstyle='round,pad=0.3', 
-                                facecolor='white', alpha=0.7))
+        # Corpo do obstáculo
+        ax.fill(x, y, color="lightgray", alpha=0.8, zorder=1)
 
-    # Plotar vértices dos obstáculos
+        # Contorno destacado
+        ax.plot(x, y, color="black", linewidth=2.0, zorder=5, label="_contorno")
+
+    # Arestas da árvore
+    for u in arvore:
+        for v, _ in arvore[u]:
+            if isinstance(u, (tuple, list)) and isinstance(v, (tuple, list)) and len(u) == 2 and len(v) == 2:
+                ax.plot(
+                    [u[0], v[0]], [u[1], v[1]],
+                    color='forestgreen', linewidth=2.0, alpha=0.7, zorder=2
+                )
+
+    # Vértices
+    try:
+        xs, ys = zip(*[v for v in arvore.keys() if isinstance(v, (tuple, list)) and len(v) == 2])
+        ax.scatter(xs, ys, s=25, color='darkgreen', label='Vértices da árvore', zorder=3)
+    except ValueError:
+        pass  # árvore vazia
+
+    # Ponto inicial e final
+    if q_start and isinstance(q_start, (tuple, list)) and len(q_start) == 2:
+        ax.scatter(*q_start, s=100, color='green', marker='o', edgecolors='black',
+                   label='Ponto inicial (q_start)', zorder=6)
+    if q_goal and isinstance(q_goal, (tuple, list)) and len(q_goal) == 2:
+        ax.scatter(*q_goal, s=100, color='red', marker='X', edgecolors='black',
+                   label='Ponto final (q_goal)', zorder=6)
+
+    # Aparência geral
+    ax.set_title("Árvore Geradora Mínima (MST)", fontsize=14, fontweight="bold", pad=12)
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.grid(True, linestyle="--", alpha=0.3)
+
+    # Legenda fora do gráfico
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(
+        loc='center left',
+        bbox_to_anchor=(1.02, 0.5),
+        frameon=True,
+        shadow=True
+    )
+
+    # Aspecto e exibição
+    ax.set_aspect('equal', 'box')
+    plt.tight_layout()
+    plt.show()
+
+    # Vértices dos obstáculos
     for obst in obstaculos:
         xs, ys = zip(*obst)
         plt.plot(xs, ys, 'ko', markersize=6, zorder=3, alpha=0.6)
 
-    # Plotar pontos inicial e final (destaque)
+    # Pontos inicial e final (destaque)
     ax.plot(q_start[0], q_start[1], 'go', markersize=16, 
             label='Início (q_start)', zorder=5, 
             markeredgecolor='darkgreen', markeredgewidth=2.5)
