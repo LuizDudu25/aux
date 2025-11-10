@@ -166,7 +166,6 @@ if __name__ == "__main__":
             plotar_caminho(caminho, obstaculos, q_start, q_goal, grafo)
         else:
             print(f"\nVisualização não realizada, nenhum caminho disponível")
-
         
     except FileNotFoundError:
         print(f"\nArquivo '{arquivo_mapa}' não encontrado")
