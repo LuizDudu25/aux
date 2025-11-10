@@ -3,7 +3,6 @@ import math
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from shapely.geometry import Polygon
 
 def prim(grafo, inicio):
