@@ -3,7 +3,7 @@ import itertools
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from shapely.geometry import Polygon
 
 from geometria import linha_livre
 
@@ -80,47 +80,65 @@ def grafo_visibilidade(q_start, q_goal, obstaculos, max_distancia=None, debug=Fa
     
     return G
 
-def plotar_grafo(q_start, q_goal, obstaculos, grafo, caminho=None):
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ax.set_aspect('equal')
-    
-    # Plotar obstáculos
+def plotar_grafo(grafo, obstaculos, q_start=None, q_goal=None):
+    """
+    Plota o grafo de visibilidade com obstáculos e pontos especiais.
+    Linhas mais grossas, cores distintas e legenda fora da área principal.
+    """
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    # Obstáculos
     for obst in obstaculos:
-        ax.add_patch(patches.Polygon(obst, closed=True, 
-                                    facecolor='gray', 
-                                    edgecolor='black', 
-                                    alpha=0.7,
-                                    linewidth=2))
-    
-    # Plotar arestas do grafo
+        pol = Polygon(obst)
+        x, y = pol.exterior.xy
+        ax.fill(x, y, color="lightgray", alpha=0.8, zorder=1)
+        ax.plot(x, y, color="black", linewidth=2.0, zorder=5, label="_contorno")
+
+    # Arestas
     for v in grafo:
-        for (vizinho, _) in grafo[v]:
-            plt.plot([v[0], vizinho[0]], [v[1], vizinho[1]], 
-                    color='lightblue', linewidth=0.5, alpha=0.4, zorder=1)
-    
-    # Plotar caminho (se fornecido)
-    if caminho:
-        for i in range(len(caminho) - 1):
-            plt.plot([caminho[i][0], caminho[i+1][0]], 
-                    [caminho[i][1], caminho[i+1][1]], 
-                    color='red', linewidth=3, alpha=0.8, zorder=3, 
-                    label='Caminho' if i == 0 else '')
-    
-    # Plotar vértices dos obstáculos
-    for obst in obstaculos:
-        xs, ys = zip(*obst)
-        plt.plot(xs, ys, 'ko', markersize=4, zorder=2)
-    
-    # Plotar pontos inicial e final
-    ax.plot(q_start[0], q_start[1], 'go', markersize=12, 
-            label='Início', zorder=4, markeredgecolor='darkgreen', markeredgewidth=2)
-    ax.plot(q_goal[0], q_goal[1], 'ro', markersize=12, 
-            label='Objetivo', zorder=4, markeredgecolor='darkred', markeredgewidth=2)
-    
-    plt.legend(loc='best', fontsize=10)
-    plt.title("Grafo de Visibilidade", fontsize=14, fontweight='bold')
-    plt.xlabel("X")
-    plt.ylabel("Y")
-    plt.grid(True, alpha=0.3)
+        for viz, _ in grafo[v]:
+            # garante que v e viz sejam iteráveis com 2 valores (x, y)
+            if isinstance(v, (tuple, list)) and isinstance(viz, (tuple, list)) and len(v) == 2 and len(viz) == 2:
+                ax.plot(
+                    [v[0], viz[0]], [v[1], viz[1]],
+                    color='steelblue', linewidth=1.8, alpha=0.7, zorder=1
+                )
+
+    # Vértices
+    try:
+        xs, ys = zip(*[v for v in grafo.keys() if isinstance(v, (tuple, list)) and len(v) == 2])
+        ax.scatter(xs, ys, s=20, color='navy', label='Vértices do grafo', zorder=2)
+    except ValueError:
+        # Grafo pode estar vazio — apenas ignora
+        pass
+
+    # Ponto inicial e final
+    if q_start and isinstance(q_start, (tuple, list)) and len(q_start) == 2:
+        ax.scatter(*q_start, s=80, color='green', marker='o', edgecolors='black',
+                   label='Ponto inicial (q_start)', zorder=3)
+    if q_goal and isinstance(q_goal, (tuple, list)) and len(q_goal) == 2:
+        ax.scatter(*q_goal, s=80, color='red', marker='X', edgecolors='black',
+                   label='Ponto final (q_goal)', zorder=3)
+
+    # Aparência geral
+    ax.set_title("Grafo de Visibilidade", fontsize=14, fontweight="bold", pad=12)
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.grid(True, linestyle="--", alpha=0.3)
+
+    # Legenda
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])  # espaço para legenda
+    ax.legend(
+        loc='center left',
+        bbox_to_anchor=(1.02, 0.5),
+        frameon=True,
+        shadow=True
+    )
+
+    # Aspecto e exibição
+    ax.set_aspect('equal', 'box')
     plt.tight_layout()
     plt.show()
+
