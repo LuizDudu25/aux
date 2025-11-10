@@ -1,6 +1,6 @@
 from mapa import ler_mapa
 from grafo import grafo_visibilidade, plotar_grafo
-from arvore import (prim, validar_mst, estatisticas_mst, plotar_mst, verticeMaisProximo, plotar_vertice_mais_proximo)
+from arvore import (prim, validar_mst, estatisticas_mst, plotar_mst, verticeMaisProximo)
 from caminho import (buscarCaminho, estatisticas_caminho, plotarCaminho)
 
 if __name__ == "__main__":
@@ -93,37 +93,14 @@ if __name__ == "__main__":
         
         # Visualizar MST
         print(f"\nGerando visualização da MST...")
-        plotar_mst(q_start, q_goal, obstaculos, mst, mostrar_pesos=False)
+        plotar_mst(mst, obstaculos, q_start, q_goal)
 
         # ==================== ETAPA 4: VÉRTICE MAIS PRÓXIMO ====================
-        print(f"\nEncontrando o vértice mais próximo...")
+        print(f"\nEncontrando os vértices mais próximo...")
         
-        # Teste 1: Ponto aleatório
-        ponto_teste = ((q_start[0] + q_goal[0]) / 2, (q_start[1] + q_goal[1]) / 2)
-        
-        print(f"\nPonto de teste: {ponto_teste}")
-        
-        # Buscar vértice mais próximo
-        vertice_prox, distancia = verticeMaisProximo(ponto_teste, mst, retornar_distancia=True)
-        
-        if vertice_prox is not None:
-            print(f"\nVértice mais próximo encontrado:")
-            print(f"Vértice:   {vertice_prox}")
-            print(f"Distância: {distancia:.4f}")
-            
-            # Verificar se é q_start ou q_goal
-            if vertice_prox == q_start:
-                print(f"Tipo: q_start")
-            elif vertice_prox == q_goal:
-                print(f"Tipo: q_goal")
-            else:
-                print(f"Tipo: vértice de obstáculo")
-            
-            # Visualizar
-            print(f"\nGerando visualização da busca...")
-            plotar_vertice_mais_proximo(q_start, q_goal, obstaculos, mst, ponto_teste, vertice_prox)
-        else:
-            print(f"\nNão foi possível encontrar vértice mais próximo")
+        v_inicio = verticeMaisProximo(q_start, mst)
+        v_fim = verticeMaisProximo(q_goal, mst)
+    
         
         # Teste 2: Múltiplos pontos
         print(f"\nTestando com múltiplos pontos...")
@@ -147,7 +124,7 @@ if __name__ == "__main__":
             print(f"   Usando algoritmo: DFS (Depth-First Search)")
             
             # Buscar caminho
-            caminho, distancia_caminho = buscarCaminho(q_start, q_goal, mst)
+            caminho, distancia_caminho = buscarCaminho(v_inicio, v_fim, mst)
             
             if caminho:
                 print(f"\nCaminho encontrado com sucesso")
@@ -201,14 +178,9 @@ if __name__ == "__main__":
             print(f"Caminho: {len(caminho)} vértices, distância {distancia_caminho:.2f}")
             
             # Plotar com árvore completa
-            print(f"\nVisualização 1: Caminho destacado sobre a árvore completa")
+            print(f"\nCaminho destacado sobre a árvore completa")
             plotarCaminho(q_start, q_goal, obstaculos, mst, caminho, 
                          mostrar_arvore=True, destacar_vertices=True)
-            
-            # Plotar apenas caminho (opcional)
-            print(f"\nVisualização 2: Apenas o caminho (sem árvore)")
-            plotarCaminho(q_start, q_goal, obstaculos, mst, caminho, 
-                         mostrar_arvore=False, destacar_vertices=True)
         else:
             print(f"\nVisualização não realizada, nenhum caminho disponível")
 
