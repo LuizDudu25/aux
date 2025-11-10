@@ -100,22 +100,6 @@ if __name__ == "__main__":
         
         v_inicio = verticeMaisProximo(q_start, mst)
         v_fim = verticeMaisProximo(q_goal, mst)
-    
-        
-        # Teste 2: Múltiplos pontos
-        print(f"\nTestando com múltiplos pontos...")
-        
-        pontos_teste = [
-            q_start,  # Deve retornar ele mesmo
-            q_goal,   # Deve retornar ele mesmo ou próximo
-            ((q_start[0] + 1, q_start[1] + 1)),  # Ponto próximo ao início
-        ]
-        
-        print(f"\n  Resultados:")
-        for i, ponto in enumerate(pontos_teste, 1):
-            v, d = verticeMaisProximo(ponto, mst, retornar_distancia=True)
-            if v:
-                print(f"{i}. Ponto {ponto} -> Vértice {v} (dist: {d:.3f})")
         
         # ==================== ETAPA 5: BUSCA DE CAMINHO ====================
         # Só procurar caminho se q_goal estiver na MST
