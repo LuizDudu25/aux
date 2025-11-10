@@ -1,14 +1,14 @@
 from mapa import ler_mapa
-from grafo import grafo_visibilidade, plotar_grafo
-from arvore import (prim, validar_mst, estatisticas_mst, plotar_mst, verticeMaisProximo)
-from caminho import (buscarCaminho, estatisticas_caminho, plotar_caminho)
+from grafo import grafo_visibilidade
+from arvore import prim, validar_mst, estatisticas_mst, verticeMaisProximo
+from caminho import buscarCaminho, estatisticas_caminho
+from plots import plotar_grafo, plotar_mst, plotar_caminho
 
 if __name__ == "__main__":
     arquivo_mapa = "mapa.txt"
     
     try:
-        # ==================== ETAPA 1: LEITURA DO MAPA ====================
-             
+        # ==================== ETAPA 1: LEITURA DO MAPA ==================== 
         q_start, q_goal, obstaculos = ler_mapa(arquivo_mapa)
         
         print(f"\nConfiguração do mapa carregada com sucesso")
