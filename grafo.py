@@ -7,26 +7,6 @@ from shapely.geometry import Polygon
 
 from geometria import linha_livre
 
-try:
-    from shapely.geometry import LineString, Polygon, Point
-    HAS_SHAPELY = True
-except Exception:
-    HAS_SHAPELY = False
-
-def _linha_livre_shapely(p1, p2, obstaculos):
-    line = LineString([p1, p2])
-    for obst in obstaculos:
-        poly = Polygon(obst)
-        # Se a linha intersecta o polígono e não apenas toca a borda -> não livre
-        if poly.is_empty:
-            continue
-        if line.intersects(poly):
-            # Se a linha toca apenas a borda/contorno (touches), considerar livre
-            if line.touches(poly):
-                continue
-            return False
-    return True
-
 def grafo_visibilidade(q_start, q_goal, obstaculos, max_distancia=None, debug=False):
     # Coletar todos os vértices
     vertices = [q_start, q_goal]
@@ -49,17 +29,7 @@ def grafo_visibilidade(q_start, q_goal, obstaculos, max_distancia=None, debug=Fa
             continue
         
         # Verificar se a linha entre v1 e v2 está livre
-        livre = False
-        if HAS_SHAPELY:
-            try:
-                livre = _linha_livre_shapely(v1, v2, obstaculos)
-            except Exception as e:
-                # Em caso de erro com shapely, cair para o fallback
-                if debug:
-                    print("shapely check failed:", e)
-                livre = linha_livre(v1, v2, obstaculos)
-        else:
-            livre = linha_livre(v1, v2, obstaculos)
+        livre = linha_livre(v1, v2, obstaculos)
         
         if livre:
             G[v1].append((v2, distancia))
@@ -81,11 +51,6 @@ def grafo_visibilidade(q_start, q_goal, obstaculos, max_distancia=None, debug=Fa
     return G
 
 def plotar_grafo(grafo, obstaculos, q_start=None, q_goal=None):
-    """
-    Plota o grafo de visibilidade com obstáculos e pontos especiais.
-    Linhas mais grossas, cores distintas e legenda fora da área principal.
-    """
-
     fig, ax = plt.subplots(figsize=(8, 8))
 
     # Obstáculos
