@@ -56,7 +56,7 @@ if __name__ == "__main__":
         
         # Visualizar grafo
         print(f"\nGerando visualização do grafo de visibilidade...")
-        plotar_grafo(q_start, q_goal, obstaculos, grafo)
+        plotar_grafo(grafo, obstaculos, q_start, q_goal)
         
         # ==================== ETAPA 3: ÁRVORE GERADORA MÍNIMA ====================
         print(f"\nCalculando MST usando o algoritmo de Prim...")
