@@ -1,3 +1,4 @@
+import math
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -75,7 +76,6 @@ def estatisticas_caminho(caminho, distancia):
     distancia_media = distancia / num_arestas if num_arestas > 0 else 0
     
     # Distância euclidiana direta
-    import math
     dist_direta = math.dist(caminho[0], caminho[-1])
     
     # Razão entre caminho na árvore e linha reta
