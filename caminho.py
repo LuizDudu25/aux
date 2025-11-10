@@ -1,7 +1,7 @@
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from shapely.geometry import Polygon
 
 def construir_adjacencia(arvore):
     adj = {}
@@ -9,7 +9,6 @@ def construir_adjacencia(arvore):
         adj.setdefault(u, []).append((v, peso))
         adj.setdefault(v, []).append((u, peso))
     return adj
-
 
 def buscarCaminho(v_inicio, v_fim, arvore):
     # Validações
@@ -91,116 +90,62 @@ def estatisticas_caminho(caminho, distancia):
         'razao_caminho': razao
     }
 
+def plotar_caminho(caminho, obstaculos, q_start, q_goal, grafo=None):
+    fig, ax = plt.subplots(figsize=(8, 8))
 
-def plotarCaminho(q_start, q_goal, obstaculos, arvore, caminho, mostrar_arvore=True, destacar_vertices=True):
+    # Obstáculos
+    for obst in obstaculos:
+        pol = Polygon(obst)
+        x, y = pol.exterior.xy
+        ax.fill(x, y, color="gainsboro", alpha=0.7, zorder=1)
+        ax.plot(x, y, color="gray", linewidth=2, alpha=0.8, zorder=2)
 
-    fig, ax = plt.subplots(figsize=(12, 10))
-    ax.set_aspect('equal')
-    
-    # Plotar obstáculos
-    for obst in obstaculos:
-        ax.add_patch(patches.Polygon(obst, closed=True, 
-                                    facecolor='gray', 
-                                    edgecolor='black',
-                                    alpha=0.7,
-                                    linewidth=2))
-    
-    # Plotar árvore completa (opcional, em segundo plano)
-    if mostrar_arvore:
-        for (u, v, _) in arvore:
-            plt.plot([u[0], v[0]], [u[1], v[1]], 
-                    color='lightblue', linewidth=1.5, 
-                    alpha=0.4, zorder=1)
-    
-    # Plotar caminho encontrado (DESTAQUE)
+    # Grafo de visibilidade
+    if grafo:
+        for u in grafo:
+            for v, _ in grafo[u]:
+                ax.plot(
+                    [u[0], v[0]], [u[1], v[1]],
+                    color='lightgray', linewidth=1, alpha=0.8, zorder=1
+                )
+
+    # Caminho final
     if caminho and len(caminho) > 1:
-        # Segmentos do caminho com cores variadas
         for i in range(len(caminho) - 1):
-            u, v = caminho[i], caminho[i + 1]
-            
-            # Gradiente de cor: verde (início) -> vermelho (fim)
-            intensidade = i / (len(caminho) - 2) if len(caminho) > 2 else 0.5
-            cor = (0.2 + 0.8 * intensidade, 0.8 - 0.6 * intensidade, 0.2)
-            
-            plt.plot([u[0], v[0]], [u[1], v[1]], 
-                    color=cor, linewidth=4, alpha=0.9, zorder=3,
-                    solid_capstyle='round')
-        
-        # Vértices intermediários do caminho
-        if destacar_vertices and len(caminho) > 2:
-            vertices_intermediarios = caminho[1:-1]
-            xs, ys = zip(*vertices_intermediarios)
-            plt.plot(xs, ys, 'o', color='orange', markersize=10, 
-                    zorder=4, markeredgecolor='darkorange', 
-                    markeredgewidth=2, label='Vértices do caminho')
-        
-        # Seta indicando direção
-        if len(caminho) > 2:
-            # Seta no meio do caminho
-            meio_idx = len(caminho) // 2
-            u, v = caminho[meio_idx], caminho[meio_idx + 1]
-            meio_x = (u[0] + v[0]) / 2
-            meio_y = (u[1] + v[1]) / 2
-            dx = v[0] - u[0]
-            dy = v[1] - u[1]
-            
-            plt.arrow(meio_x - dx * 0.1, meio_y - dy * 0.1, 
-                     dx * 0.2, dy * 0.2,
-                     head_width=0.3, head_length=0.2, 
-                     fc='yellow', ec='orange', zorder=5, linewidth=2)
-    
-    # Plotar vértices dos obstáculos
-    for obst in obstaculos:
-        xs, ys = zip(*obst)
-        plt.plot(xs, ys, 'ko', markersize=5, zorder=2, alpha=0.5)
-    
-    # Pontos inicial e final (DESTAQUE MÁXIMO)
-    ax.plot(q_start[0], q_start[1], 'go', markersize=18, 
-            label='Início (q_start)', zorder=6, 
-            markeredgecolor='darkgreen', markeredgewidth=3)
-    ax.plot(q_goal[0], q_goal[1], 'ro', markersize=18, 
-            label='Objetivo (q_goal)', zorder=6, 
-            markeredgecolor='darkred', markeredgewidth=3)
-    
-    # Linha direta (referência)
-    plt.plot([q_start[0], q_goal[0]], [q_start[1], q_goal[1]], 
-            'k--', linewidth=1, alpha=0.3, zorder=0, 
-            label='Linha direta')
-    
-    # Calcular e mostrar estatísticas
-    if caminho and len(caminho) > 1:
-        # Calcular distância do caminho
-        distancia_caminho = 0
-        for i in range(len(caminho) - 1):
-            u, v = caminho[i], caminho[i + 1]
-            # Encontrar peso da aresta na árvore
-            for (a, b, peso) in arvore:
-                if (a == u and b == v) or (a == v and b == u):
-                    distancia_caminho += peso
-                    break
-        
-        stats = estatisticas_caminho(caminho, distancia_caminho)
-        
-        # Caixa de informações
-        info_text = (
-            f"Vértices: {stats['num_vertices']}\n"
-            f"Arestas: {stats['num_arestas']}\n"
-            f"Dist. Caminho: {stats['distancia_total']:.2f}\n"
-            f"Dist. Direta: {stats['distancia_euclidiana_direta']:.2f}\n"
-            f"Razão: {stats['razao_caminho']:.2f}x"
-        )
-        
-        ax.text(0.02, 0.98, info_text, transform=ax.transAxes,
-                fontsize=10, verticalalignment='top',
-                bbox=dict(boxstyle='round', facecolor='lightyellow', 
-                         alpha=0.9, edgecolor='orange', linewidth=2),
-                family='monospace')
-    
-    plt.legend(loc='upper right', fontsize=11, framealpha=0.95)
-    plt.title("Caminho Encontrado na Árvore de Visibilidade", 
-             fontsize=14, fontweight='bold', pad=15)
-    plt.xlabel("X", fontsize=11)
-    plt.ylabel("Y", fontsize=11)
-    plt.grid(True, alpha=0.3, linestyle='--')
+            x0, y0 = caminho[i]
+            x1, y1 = caminho[i + 1]
+            ax.plot(
+                [x0, x1], [y0, y1],
+                color='red', linewidth=3.5, alpha=0.95, zorder=5
+            )
+
+    # Vértices do caminho
+    if caminho:
+        xs, ys = zip(*caminho)
+        ax.scatter(xs, ys, s=30, color='darkred', zorder=6, label="Caminho")
+
+    # Ponto inicial e final
+    ax.scatter(*q_start, s=120, color='limegreen', marker='o', edgecolors='black',
+               label='Ponto inicial (q_start)', zorder=7)
+    ax.scatter(*q_goal, s=120, color='red', marker='X', edgecolors='black',
+               label='Ponto final (q_goal)', zorder=7)
+
+    # Aparência geral
+    ax.set_title("Caminho Final no Grafo de Visibilidade", fontsize=14, fontweight="bold", pad=12)
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.grid(True, linestyle="--", alpha=0.25)
+
+    # Legenda
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(
+        loc='center left',
+        bbox_to_anchor=(1.02, 0.5),
+        frameon=True,
+        shadow=False
+    )
+
+    ax.set_aspect('equal', 'box')
     plt.tight_layout()
     plt.show()
